@@ -2,7 +2,7 @@
 
 namespace Lyz\WePayV3\Doc\TransferBatch;
 
-use lyz\common\BaseObject;
+use Lyz\Common\BaseObject;
 
 /**
  * Class InitiateBatchTransferRequest
