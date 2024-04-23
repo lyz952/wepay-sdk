@@ -5,8 +5,8 @@ namespace Lyz\WePayV3\Doc\TransferBatch;
 use Lyz\Common\BaseObject;
 
 /**
- * Class TransferDetailInput
  * 转账明细列表项
+ * Class TransferDetailInput
  * @package Lyz\WePayV3\Doc\TransferBatch
  */
 class TransferDetailInput extends BaseObject

@@ -5,8 +5,8 @@ namespace Lyz\WePayV3\Doc\TransferBatch;
 use Lyz\Common\BaseObject;
 
 /**
- * Class InitiateBatchTransferResponse
  * 发起商家转账接口应答参数
+ * Class InitiateBatchTransferResponse
  * @package Lyz\WePayV3\Doc\TransferBatch
  */
 class InitiateBatchTransferResponse extends BaseObject
