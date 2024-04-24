@@ -6,10 +6,10 @@ use Lyz\Common\BaseObject;
 
 /**
  * 应答参数
- * Class BaseResponse
+ * Class BasicResponse
  * @package Lyz\WePay\Doc
  */
-class BaseResponse extends BaseObject
+class BasicResponse extends BaseObject
 {
     /**
      * 【业务结果】必填 

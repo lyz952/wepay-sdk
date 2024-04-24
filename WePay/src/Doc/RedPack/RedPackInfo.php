@@ -2,14 +2,14 @@
 
 namespace Lyz\WePay\Doc\RedPack;
 
-use Lyz\WePay\Doc\BaseResponse;
+use Lyz\WePay\Doc\BasicResponse;
 
 /**
  * 查询红包记录接口应答参数
  * Class RedPackInfo
  * @package Lyz\WePay\Doc\RedPack
  */
-class RedPackInfo extends BaseResponse
+class RedPackInfo extends BasicResponse
 {
     /**
      * 【业务结果】必填 

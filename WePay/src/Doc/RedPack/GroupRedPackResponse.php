@@ -2,14 +2,14 @@
 
 namespace Lyz\WePay\Doc\RedPack;
 
-use Lyz\WePay\Doc\BaseResponse;
+use Lyz\WePay\Doc\BasicResponse;
 
 /**
  * 发放裂变红包接口应答参数
  * Class GroupRedPackResponse
  * @package Lyz\WePay\Doc\RedPack
  */
-class GroupRedPackResponse extends BaseResponse
+class GroupRedPackResponse extends BasicResponse
 {
     /**
      * 【业务结果】必填 
@@ -29,7 +29,7 @@ class GroupRedPackResponse extends BaseResponse
      * @var string
      */
     public $err_code;
-    
+
     /**
      * 【商户订单号】必填
      * 商户订单号（每个订单号必须唯一）

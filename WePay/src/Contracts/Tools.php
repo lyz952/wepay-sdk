@@ -76,4 +76,18 @@ class Tools
         }
         return $str;
     }
+
+    /**
+     * 获取输入对象
+     * 
+     * @return false|mixed|string
+     */
+    public static function getRawInput()
+    {
+        if (empty($GLOBALS['HTTP_RAW_POST_DATA'])) {
+            return file_get_contents('php://input');
+        } else {
+            return $GLOBALS['HTTP_RAW_POST_DATA'];
+        }
+    }
 }

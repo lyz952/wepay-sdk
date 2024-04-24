@@ -2,14 +2,14 @@
 
 namespace Lyz\WePayV3\Doc\TransferBatch;
 
-use Lyz\Common\BaseObject;
+use Lyz\WePayV3\Doc\BasicResponse;
 
 /**
  * 发起商家转账接口应答参数
  * Class InitiateBatchTransferResponse
  * @package Lyz\WePayV3\Doc\TransferBatch
  */
-class InitiateBatchTransferResponse extends BaseObject
+class InitiateBatchTransferResponse extends BasicResponse
 {
     /**
      * 【商家批次单号】必填 
