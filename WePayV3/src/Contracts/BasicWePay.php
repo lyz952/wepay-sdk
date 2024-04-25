@@ -178,15 +178,29 @@ abstract class BasicWePay
     /**
      * 发起 GET 请求
      * 
-     * @param string $pathinfo 请求路由
-     * @param array  $data     请求数据
-     * @param bool   $verify   是否验证
-     * @return array
+     * @param string  $pathinfo 请求路由
+     * @param array   $params   请求数据
+     * @param bool    $verify   是否验证
+     * @param boolean $isjson   返回JSON
+     * @return array|string
      * @throws \Lyz\WePayV3\Exceptions\InvalidResponseException
      */
-    public function doGet($pathinfo, $data = [], $verify = true)
+    public function doGet($pathinfo, $params = [], $verify = true, $isjson = true)
     {
-        return $this->doRequest('GET', $pathinfo, $data, $verify);
+        if (!empty($params)) {
+            $pathinfo .= (is_array($params) ? http_build_query($params) : $params);
+        }
+        list($http_code, $content) = $this->doRequest('GET', $pathinfo, '', $verify);
+        if ($isjson) {
+            $content = json_decode($content, true);
+            $content['http_code'] = $http_code;
+            return $content;
+        }
+
+        return [
+            'http_code' => $http_code,
+            'content' => $content,
+        ];
     }
 
     /**
@@ -194,13 +208,16 @@ abstract class BasicWePay
      * 
      * @param string $pathinfo 请求路由
      * @param array  $data     请求数据
-     * @param bool   $verify   是否验证
      * @return array
      * @throws \Lyz\WePayV3\Exceptions\InvalidResponseException
      */
-    public function doPost($pathinfo, $data = [], $verify = true)
+    public function doPost($pathinfo, $data)
     {
-        return $this->doRequest('POST', $pathinfo, $data, $verify);
+        $jsondata = json_encode($data, JSON_UNESCAPED_UNICODE);
+        list($http_code, $content) = $this->doRequest('POST', $pathinfo, $jsondata, true);
+        $content = json_decode($content, true);
+        $content['http_code'] = $http_code;
+        return $content;
     }
 
     /**
@@ -208,17 +225,15 @@ abstract class BasicWePay
      * 
      * @param string $method   请求访问
      * @param string $pathinfo 请求路由
-     * @param array  $data     请求数据
+     * @param string $data     请求数据
      * @param bool   $verify   是否验证
      * @return array
      * @throws \Lyz\WePayV3\Exceptions\InvalidResponseException
      */
-    public function doRequest($method, $pathinfo, $data = [], $verify = true)
+    public function doRequest($method, $pathinfo, $data = '', $verify = true)
     {
-        $jsondata = json_encode($data, JSON_UNESCAPED_UNICODE);
-
         list($time, $nonce) = [time(), uniqid() . rand(1000, 9999)];
-        $signstr = join("\n", [$method, $pathinfo, $time, $nonce, $jsondata, '']);
+        $signstr = join("\n", [$method, $pathinfo, $time, $nonce, $data, '']);
 
         // 生成数据签名TOKEN
         $token = sprintf(
@@ -231,10 +246,10 @@ abstract class BasicWePay
         );
 
         $arr_url = parse_url($_SERVER['HTTP_HOST']);
-        $ua = empty($arr_url['path']) ? 'https://lyz168.com' : $arr_url['path'];
+        $ua = empty($arr_url['path']) ? 'https://www.lyz168.com' : $arr_url['path'];
 
         list($header, $content) = $this->_doRequestCurl($method, $this->base . $pathinfo, [
-            'data' => $jsondata,
+            'data' => $data,
             // 必须设置 Accept, Content-Type 为 application/json  图片上传API除外
             // User-Agent: 
             // 1.使用HTTP客户端默认的 User-Agent 
@@ -247,6 +262,8 @@ abstract class BasicWePay
                 // "Accept-Language: zh-CN", // 应答的语种: en,zh-CN,zh-HK,zh-TW
             ],
         ]);
+
+        $http_code = 200;
 
         if ($verify) {
             $headers = [
@@ -264,7 +281,7 @@ abstract class BasicWePay
             }
             try {
                 if (empty($headers)) {
-                    return json_decode($content, true);
+                    return [$http_code, $content];
                 }
 
                 // 顺序不能乱
@@ -282,7 +299,7 @@ abstract class BasicWePay
                 ]);
             }
         }
-        return json_decode($content, true);
+        return [$http_code, $content];
     }
 
     /**
