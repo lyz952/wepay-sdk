@@ -85,6 +85,7 @@ abstract class BasicWePay
      *  --- certPrivate(文件路径或内容)
      *  --- certSerial(不传则从公钥证书分析)
      *  --- CertCache(证书缓存类)
+     * @throws \Lyz\WePayV3\Exceptions\InvalidArgumentException
      */
     public function __construct(array $options = [])
     {
@@ -262,6 +263,10 @@ abstract class BasicWePay
                 }
             }
             try {
+                if (empty($headers)) {
+                    return json_decode($content, true);
+                }
+
                 // 顺序不能乱
                 $string = join("\n", [$headers['timestamp'], $headers['nonce'], $content, '']);
                 if (!$this->signVerify($string, $headers['signature'], $headers['serial'])) {
@@ -310,7 +315,12 @@ abstract class BasicWePay
         $content = curl_exec($curl);
         $headerSize = curl_getinfo($curl, CURLINFO_HEADER_SIZE);
 
+        // HTTP 状态码
+        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+
         curl_close($curl);
+
+        // 验证状态码
 
         return [substr($content, 0, $headerSize), substr($content, $headerSize)];
     }

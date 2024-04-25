@@ -69,6 +69,7 @@ abstract class BasicWePay
      *  --- sslCer
      *  --- sslKey
      *  --- CertCache
+     * @throws \Lyz\WePay\Exceptions\InvalidArgumentException
      */
     public function __construct(array $options = [])
     {
@@ -159,7 +160,7 @@ abstract class BasicWePay
             return_msg:【返回信息】错误原因
          */
         if ($result['return_code'] !== 'SUCCESS') {
-            throw new InvalidResponseException($result['return_msg'], '0');
+            throw new InvalidResponseException($result['return_msg']);
         }
         return $result;
     }

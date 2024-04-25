@@ -21,9 +21,10 @@ class DecryptAes
     const AUTH_TAG_LENGTH_BYTE = 16;
 
     /**
-     * Constructor
+     * Constructor.
      * 
      * @param string $aesKey
+     * @throws \Lyz\WePayV3\Exceptions\InvalidArgumentException
      */
     public function __construct($aesKey)
     {

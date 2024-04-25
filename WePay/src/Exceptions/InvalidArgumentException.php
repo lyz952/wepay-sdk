@@ -17,9 +17,9 @@ class InvalidArgumentException extends \InvalidArgumentException
     /**
      * constructor.
      * 
-     * @param string $message
+     * @param string  $message
      * @param integer $code
-     * @param array $raw
+     * @param array   $raw
      */
     public function __construct($message, $code = 0, $raw = [])
     {
