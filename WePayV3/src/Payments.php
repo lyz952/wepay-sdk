@@ -28,6 +28,9 @@ class Payments extends BasicWePay
      * 
      * @param \Lyz\WePayV3\Doc\Payments\PrepayRequest $prepayRequest 支付订单参数
      * @return \Lyz\WePayV3\Doc\Payments\PrepayResponse
+     * @throws \Lyz\WePayV3\Exceptions\ServiceException
+     * @throws \Lyz\WePayV3\Exceptions\ValidationException
+     * @throws \Lyz\WePayV3\Exceptions\InvalidArgumentException
      * @throws \Lyz\WePayV3\Exceptions\InvalidResponseException
      */
     public function create(PrepayRequest $prepayRequest)
@@ -52,9 +55,7 @@ class Payments extends BasicWePay
         // native: code_url 二维码链接，此URL用于生成支付二维码，然后提供给用户扫码支付。注意：code_url并非固定值，使用时按照URL格式转成二维码即可。
         // jsapi|app: prepay_id 预支付交易会话标识。用于后续接口调用中使用，该值有效期为2小时
         if (empty($result['h5_url']) && empty($result['code_url']) && empty($result['prepay_id'])) {
-            $message = isset($result['code']) ? "[ {$result['code']} ] " : '';
-            $message .= isset($result['message']) ? $result['message'] : json_encode($result, JSON_UNESCAPED_UNICODE);
-            throw new InvalidResponseException($message);
+            throw new InvalidResponseException(json_encode($result, JSON_UNESCAPED_UNICODE));
         }
 
         if ($type === 'h5') {

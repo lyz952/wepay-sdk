@@ -19,6 +19,8 @@ class Transfers extends BasicWePay
      * 
      * @param \Lyz\WePayV3\Doc\TransferBatch\InitiateBatchTransferRequest $initiateBatchTransferRequest
      * @return \Lyz\WePayV3\Doc\TransferBatch\InitiateBatchTransferResponse
+     * @throws \Lyz\WePayV3\Exceptions\ServiceException
+     * @throws \Lyz\WePayV3\Exceptions\ValidationException
      * @throws \Lyz\WePayV3\Exceptions\InvalidResponseException
      */
     public function batchs(InitiateBatchTransferRequest $initiateBatchTransferRequest)

@@ -3,6 +3,8 @@
 namespace Lyz\WePayV3\Contracts;
 
 use Lyz\WePayV3\Cert;
+use Lyz\WePayV3\Exceptions\ServiceException;
+use Lyz\WePayV3\Exceptions\ValidationException;
 use Lyz\WePayV3\Exceptions\InvalidArgumentException;
 use Lyz\WePayV3\Exceptions\InvalidResponseException;
 
@@ -183,6 +185,7 @@ abstract class BasicWePay
      * @param bool    $verify   是否验证
      * @param boolean $isjson   返回JSON
      * @return array|string
+     * @throws \Lyz\WePayV3\Exceptions\ValidationException
      * @throws \Lyz\WePayV3\Exceptions\InvalidResponseException
      */
     public function doGet($pathinfo, $params = [], $verify = true, $isjson = true)
@@ -190,17 +193,8 @@ abstract class BasicWePay
         if (!empty($params)) {
             $pathinfo .= (is_array($params) ? http_build_query($params) : $params);
         }
-        list($http_code, $content) = $this->doRequest('GET', $pathinfo, '', $verify);
-        if ($isjson) {
-            $content = json_decode($content, true);
-            $content['http_code'] = $http_code;
-            return $content;
-        }
-
-        return [
-            'http_code' => $http_code,
-            'content' => $content,
-        ];
+        $content = $this->doRequest('GET', $pathinfo, '', $verify);
+        return $isjson ? json_decode($content, true) : $content;
     }
 
     /**
@@ -209,15 +203,15 @@ abstract class BasicWePay
      * @param string $pathinfo 请求路由
      * @param array  $data     请求数据
      * @return array
+     * @throws \Lyz\WePayV3\Exceptions\ServiceException
+     * @throws \Lyz\WePayV3\Exceptions\ValidationException
      * @throws \Lyz\WePayV3\Exceptions\InvalidResponseException
      */
     public function doPost($pathinfo, $data)
     {
         $jsondata = json_encode($data, JSON_UNESCAPED_UNICODE);
-        list($http_code, $content) = $this->doRequest('POST', $pathinfo, $jsondata, true);
-        $content = json_decode($content, true);
-        $content['http_code'] = $http_code;
-        return $content;
+        $content = $this->doRequest('POST', $pathinfo, $jsondata, true);
+        return json_decode($content, true);
     }
 
     /**
@@ -227,7 +221,9 @@ abstract class BasicWePay
      * @param string $pathinfo 请求路由
      * @param string $data     请求数据
      * @param bool   $verify   是否验证
-     * @return array
+     * @return string
+     * @throws \Lyz\WePayV3\Exceptions\ServiceException
+     * @throws \Lyz\WePayV3\Exceptions\ValidationException
      * @throws \Lyz\WePayV3\Exceptions\InvalidResponseException
      */
     public function doRequest($method, $pathinfo, $data = '', $verify = true)
@@ -248,7 +244,7 @@ abstract class BasicWePay
         $arr_url = parse_url($_SERVER['HTTP_HOST']);
         $ua = empty($arr_url['path']) ? 'https://www.lyz168.com' : $arr_url['path'];
 
-        list($header, $content) = $this->_doRequestCurl($method, $this->base . $pathinfo, [
+        list($httpCode, $header, $content) = $this->_doRequestCurl($method, $this->base . $pathinfo, [
             'data' => $data,
             // 必须设置 Accept, Content-Type 为 application/json  图片上传API除外
             // User-Agent: 
@@ -262,8 +258,6 @@ abstract class BasicWePay
                 // "Accept-Language: zh-CN", // 应答的语种: en,zh-CN,zh-HK,zh-TW
             ],
         ]);
-
-        $http_code = 200;
 
         if ($verify) {
             $headers = [
@@ -281,13 +275,13 @@ abstract class BasicWePay
             }
             try {
                 if (empty($headers)) {
-                    return [$http_code, $content];
+                    return $content;
                 }
 
                 // 顺序不能乱
                 $string = join("\n", [$headers['timestamp'], $headers['nonce'], $content, '']);
                 if (!$this->signVerify($string, $headers['signature'], $headers['serial'])) {
-                    throw new InvalidResponseException("验证响应签名失败", 0, [
+                    throw new ValidationException("验证响应签名失败", [
                         'headers' => $headers,
                         'content' => $content
                     ]);
@@ -299,7 +293,12 @@ abstract class BasicWePay
                 ]);
             }
         }
-        return [$http_code, $content];
+
+        if ($httpCode < 200 && $httpCode >= 300) {
+            throw new ServiceException($httpCode, json_decode($content, true));
+        }
+
+        return $content;
     }
 
     /**
@@ -308,7 +307,7 @@ abstract class BasicWePay
      * @param string $method  请求方法
      * @param string $url     请求地址
      * @param array  $options 请求参数 [data, header]
-     * @return array [header, content]
+     * @return array [httpCode, header, content]
      */
     private function _doRequestCurl($method, $url, $options = [])
     {
@@ -333,13 +332,17 @@ abstract class BasicWePay
         $headerSize = curl_getinfo($curl, CURLINFO_HEADER_SIZE);
 
         // HTTP 状态码
+        // 处理成功的请求，如果有应答的消息体将返回200，若没有应答的消息体将返回204；
+        // 已经被成功接受待处理的请求，将返回202；
+        // 请求处理失败时，如缺少必要的入参、支付时余额不足，将会返回4xx范围内的错误码；
+        // 请求处理时发生了微信支付侧的服务系统错误，将返回500/501/503的状态码。这种情况比较少见。
         $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
         curl_close($curl);
 
         // 验证状态码
 
-        return [substr($content, 0, $headerSize), substr($content, $headerSize)];
+        return [$httpCode, substr($content, 0, $headerSize), substr($content, $headerSize)];
     }
 
     /**
