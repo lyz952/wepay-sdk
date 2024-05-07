@@ -294,7 +294,7 @@ abstract class BasicWePay
             }
         }
 
-        if ($httpCode < 200 && $httpCode >= 300) {
+        if ($httpCode < 200 || $httpCode >= 300) {
             throw new ServiceException($httpCode, json_decode($content, true));
         }
 

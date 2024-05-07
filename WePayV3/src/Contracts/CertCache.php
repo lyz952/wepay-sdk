@@ -23,7 +23,7 @@ class CertCache
      */
     public function __construct($cache_path = '')
     {
-        $this->cache_path = $cache_path ?: (dirname(dirname(dirname(__DIR__))) . DIRECTORY_SEPARATOR . 'demo' . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR);
+        $this->cache_path = $cache_path ?: (dirname(dirname(__DIR__)) . DIRECTORY_SEPARATOR . 'Cache' . DIRECTORY_SEPARATOR);
     }
 
     /**
