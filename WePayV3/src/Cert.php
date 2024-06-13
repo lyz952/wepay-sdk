@@ -23,7 +23,7 @@ class Cert extends BasicWePay
         try {
             // decryptToString 证书解密
             $aes = new DecryptAes($this->mchKey);
-            $result = $this->doGet('/v3/certificates');
+            $result = $this->doGet('/v3/certificates', [], false);
             /*
                 200 OK
                 {
