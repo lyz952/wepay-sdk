@@ -37,7 +37,7 @@ class CertCache
      */
     public function setCache($name, $value = '', $expired = 3600)
     {
-        $file = self::_getCacheName($name);
+        $file = $this->_getCacheName($name);
         $data = [
             'name' => $name,
             'value' => $value,
@@ -57,13 +57,13 @@ class CertCache
      */
     public function getCache($name)
     {
-        $file = self::_getCacheName($name);
+        $file = $this->_getCacheName($name);
         if (file_exists($file) && is_file($file) && ($content = file_get_contents($file))) {
             $data = unserialize($content);
             if (isset($data['expired']) && (intval($data['expired']) === 0 || intval($data['expired']) >= time())) {
                 return $data['value'];
             }
-            self::delCache($name);
+            $this->delCache($name);
         }
         return null;
     }
@@ -76,7 +76,7 @@ class CertCache
      */
     public function delCache($name)
     {
-        $file = self::_getCacheName($name);
+        $file = $this->_getCacheName($name);
         return !file_exists($file) || @unlink($file);
     }
 
@@ -88,8 +88,8 @@ class CertCache
      */
     private function _getCacheName($name)
     {
-        self::$cache_path = rtrim(self::$cache_path, '/\\') . DIRECTORY_SEPARATOR;
-        file_exists(self::$cache_path) || mkdir(self::$cache_path, 0755, true);
-        return self::$cache_path . $name;
+        $this->cache_path = rtrim($this->cache_path, '/\\') . DIRECTORY_SEPARATOR;
+        file_exists($this->cache_path) || mkdir($this->cache_path, 0755, true);
+        return $this->cache_path . $name;
     }
 }
